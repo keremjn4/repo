@@ -26,6 +26,7 @@ def tilesize(size):
 def drawtile(color, row, col, size=1, obstacle = False):
     pygame.draw.rect(screen, color, (col*TILE_SIZE + 1/2*(TILE_SIZE - TILE_SIZE/size), row*TILE_SIZE + 1/2*(TILE_SIZE - TILE_SIZE/size), TILE_SIZE/size, TILE_SIZE/size))
 
+
             
 font = pygame.font.SysFont(None, 18)
 foodw = 3
@@ -35,8 +36,6 @@ wall = pygame.Rect(400, 0,5, 550)
 
 initialposx = random.randint(0,800-foodw)
 initialposy = random.randint(0,600-foodh)
-
-foodimg = pygame.Rect(initialposx, initialposy, foodw, foodh)
 
 SEEK_FOOD = "SEEK_FOOD"
 SEEK_GAP = "SEEK_GAP"
@@ -64,12 +63,6 @@ class SQUARE:
         
 gap = pygame.Rect(wall.x, wall.height, wall.width, 600-wall.height)
 
-while foodimg.colliderect(wall):
-    foodimg.x = random.randint(0, 800 - foodw)
-    foodimg.y = random.randint(0, 600 - foodh)
-
-food = foodimg
-
 score = 0
 
 clock = pygame.time.Clock()
@@ -79,12 +72,14 @@ running = True
 ai_mode = False
 
 square = SQUARE(6,8,0.5)
+food = SQUARE(pixeltotile(initialposx),pixeltotile(initialposy),0.2)
 
 wall = []
 tile = []
+lfood = []
 
 while running:
-    clock.tick(30)
+    clock.tick(5)
 
     
     for event in pygame.event.get():
@@ -102,36 +97,46 @@ while running:
         ai_text = font.render(f'AI: {ai_mode}', True , (255,0,0))
         keys = pygame.key.get_pressed()
         if keys[pygame.K_RIGHT]:
-            if (square.row+dx,square.col+dx) in tile:
+            if (square.row,square.col+dx) in tile:
                 square.move(dx,0)
         if keys[pygame.K_LEFT]:
-            if (square.row-dx,square.col-dx) in tile:
+            if (square.row,square.col-dx) in tile:
                 square.move(-dx,0)        
         if keys[pygame.K_DOWN]:
-            if (square.row+dx,square.col+dx) in tile:
+            if (square.row+dx,square.col) in tile:
                 square.move(0,dy)        
         if keys[pygame.K_UP]:
-            if (square.row-dx,square.col-dx) in tile:
+            if (square.row-dx,square.col) in tile:
                 square.move(0,-dy)                
             
     if ai_mode:
-        ai_text = font.render(f'AI: {ai_mode}', True , (0,255,0))       
+          dx = 1
+          ai_text = font.render(f'AI: {ai_mode}', True , (0,255,0))              
+          if (square.row,square.col) not in lfood:
+                if food.col < square.col:
+                    square.move(-dx,0)
+                if food.col > square.col:
+                    square.move(dx,0)
+                if food.row < square.row:
+                    square.move(0,-dx) 
+                if food.row > square.row:
+                    square.move(0,dx)   
 
-                      
     screen.fill((0,0,0))
 
-    if square.rect.colliderect(food):
-        score +=1
-        food.x = random.randint(0,800-foodw)
-        food.y = random.randint(0,600-foodh)
+    if (square.row, square.col) in lfood:
+        lfood.remove((food.row, food.col))
+        score += 1
+        food.row = random.randint(0, 30) 
+        food.col = random.randint(0,40)
+        food.rect.x = tiletopixel(food.col)
+        food.rect.y = tiletopixel(food.row)
+      
 
-    score_text = font.render(f"Score: {score}", True, (255, 255, 255))
-   
-    screen.blit(score_text, (10, 10))
-    screen.blit(ai_text, (10,30))
 
     tile.clear()
     wall.clear()
+    lfood.clear()
 
     for c in range (0,COL):
         for r in range (0,ROW):
@@ -158,11 +163,18 @@ while running:
     for y in range(0, 600, TILE_SIZE):
         pygame.draw.line(screen, (50,50,50), (0,y), (800,y))
 
-    pygame.draw.rect(screen,(0,255,0), food)
+    score_text = font.render(f"Score: {score}", True, (255, 255, 255))
+   
+    screen.blit(score_text, (0, 20))
+    screen.blit(ai_text, (0, 0))      
+
+    pygame.draw.rect(screen,(0,255,0), food.rect)
+    lfood.append((food.row, food.col))
+    print(lfood)
 
     pygame.draw.rect(screen,(255,255,255), square.rect)
-    print(len(tile))
-
+    ##if (square.row,square.col) in tile:
+       ##print(f'tile {(square.row,square.col)}')
 
     drawtile((0,255,255),10,10,2)
 
