@@ -1,3 +1,24 @@
+#hatalar 81626
+# y in self.board.points düşündüğüm şeyi temsil etmiyor☑️
+# bütün pieceler birbirinin klonu. tuhaf sonuçlara yol açar(birinin statüsü diğerlerini de etkiler)☑️
+# directionı kullanmayı unutmuşum. bunu kullanmak potential positions bloğunu yarı yarıya kısaltabilir☑️
+# hatalar 81726
+# 1. <= len(...)  →  < len(...)☑️
+# 2. target2 geçersizken target0 ve target1 neden hâlâ çalışmalı?☑️
+
+#81826
+#is cell movable metodu eklenmeli ve bu hesaplamalar potential movestan çıkartılmalı☑️
+#display board garip davranmaya başladıı☑️
+
+#81926
+#capture piece ekleı☑️
+# 82026
+# Oyuncu iki kez oynayablir. ilk hamleden sonra potential move güncellenmelidir ve oyuncu tekrar seçim yapmalıdır.zarlar çift gelirse oyuncu dörte kere seçim yapmalıdır.
+# capturer_pos boş kalınca index out of range hatası veriyor ☑️
+
+#81926
+#çift gelirse zarları silmemelisin?
+
 import random
 
 class Game:
@@ -8,105 +29,132 @@ class Game:
        self.piece = Piece(color=None)
        self.running = False
 
-#    def potential_moves(self):
-#         points = self.board.points    
-#         if dice.value[0] != dice.value[1]:
-#          potential_positions = {
-#              index: (index +dice.value[0],index + dice.value[1],index + dice.value[0] + dice.value[1])
-#                for index, point in enumerate(points)
-#                                  if len(point) > 0
-#                                  if point[0].color == board.color_of_cell(index+dice.value[0])
-#                                  }
-#         else:
-#           potential_positions = {index: (index +dice.value[0]*4,(index +dice.value[0],index +dice.value[0]*2),(index +dice.value[0])) for index, point in enumerate(points) if len(point) > 0}
-#         return potential_positions,f"dice: {(dice.value[0],dice.value[1])}"
+   def display_dices(self):
+       return print(f'Dices: {game.dice.value.get("dice1")}, {game.dice.value.get("dice2")}')
+
+   def is_cell_open(self,cellnr):
+        isvalid = True
+        cell = self.board.points[cellnr]
+        if len(cell) > 1:
+         if cell[0].color != self.player.color: 
+             isvalid = False
+        return isvalid
 
    def selected_position(self):
-       decision = int(input("please select a cell for your next move"))
-       return decision
+        decision  = int(input("please select a cell to play from >"))
+        return decision  
    
    def potential_positions(self,decision):
-       potential_moves = []
+       potential_moves =  {"dice1":[],"dice2":[]}
+       all_potential_moves = {"dice1":[],"dice2":[]}
+       union = [potential_moves,all_potential_moves]
        x = self.board.points[decision]
-       if self.player.color == "w":  
-            y = self.board.points[decision+dice.value[0]]
-            z = self.board.points[decision+dice.value[1]]
-            p = self.board.points[decision+dice.value[0] + dice.value[1]]                   
-            if len(x) > 0 and y in self.board.points and self.player.color == x[0].color:
-                    if len(y) == 0:    
-                            potential_moves.append(decision+dice.value[0])      
-                    elif len(y) > 0 and x[0].color == y[0].color:
-                        potential_moves.append(decision+dice.value[0])
+       x1 = self.board.points
+       if len(x) > 0 and self.player.color == x[0].color: 
+        if "dice1" in self.dice.value:
+         target0 = decision + x[0].direction*self.dice.value["dice1"]
+         target0_valid = 0 <= target0 < len(self.board.points)
+         if target0_valid:
+            if self.is_cell_open(target0):    
+                            potential_moves["dice1"].append(target0)         
+        if "dice2" in self.dice.value:
+         target1 = decision + x[0].direction*self.dice.value["dice2"]
+         target1_valid = 0 <= target1 < len(self.board.points)
+         if target1_valid:
+            if self.is_cell_open(target1):    
+                        potential_moves["dice2"].append(target1)         
+        # target2 = decision + x[0].direction*(dice.value[0] + dice.value[1])     
+        # target2_valid = 0 <= target2 < len(self.board.points) 
+        # target0_open = target0_valid and self.is_cell_open(target0)
+        # target1_open = target1_valid and self.is_cell_open(target1)   
+        for a in x1:   
+            if len(a) > 0 and a[0].color == self.player.color:
+                if "dice1" in self.dice.value:
+                 all_target0 = x1.index(a) + x[0].direction*self.dice.value["dice1"] 
+                 all_target0_valid = 0 <=  all_target0 < len(self.board.points)
+                 if all_target0_valid:
+                    if self.is_cell_open(all_target0):    
+                                    all_potential_moves["dice1"].append(all_target0)                 
+                if "dice2" in self.dice.value:         
+                 all_target1 = x1.index(a) + x[0].direction*self.dice.value["dice2"]
+                 all_target1_valid = 0 <=  all_target1 < len(self.board.points)
+                 if all_target1_valid:
+                    if self.is_cell_open(all_target1):    
+                                all_potential_moves["dice2"].append(all_target1)                 
+                # all_target2 = x1.index(a) + x[0].direction*(dice.value[0] + dice.value[1])
+                # all_target2_valid = 0 <=  all_target2 < len(self.board.points)
+                # all_target0_open = all_target0_valid and self.is_cell_open(all_target0)
+                # all_target1_open = all_target1_valid and self.is_cell_open(all_target1)                                     
+                # if all_target2_valid :
+                #     if self.is_cell_open(all_target2):  
+                #         if all_target0_open or all_target1_open:
+                #             all_potential_moves.append(all_target2)                                                           
+        # if target2_valid and target2 in all_potential_moves:
+        #      if self.is_cell_open(target2):  
+        #         if target0_open or target1_open:
+        #              potential_moves.append(target2) 
+        # print(f'Dices: {self.dice.value.get("dice1")}, {self.dice.value.get("dice2")}')
+                                                                                                                       
+       return union
 
-                    elif len(y) > 0 and x[0].color != y[0].color:
-                        if len(y) ==1:
-                            potential_moves.append(decision+dice.value[0])
-                
-            if len(x) > 0 and z in self.board.points:
-                    if len(z) == 0:    
-                        potential_moves.append(decision+dice.value[1])      
-                    elif len(z) > 0 and x[0].color == z[0].color:
-                        potential_moves.append(decision+dice.value[1])
-                    elif len(z) > 0 and x[0].color != z[0].color:
-                        if len(z) ==1:
-                            potential_moves.append(decision+dice.value[1])
 
-            if len(x) > 0 and p in self.board.points:
-                   if len(p) <= 1 or x[0].color == p[0].color:
-                        if len(y) > 1 and x[0].color != y[0].color:
-                            if len(z) <= 1:
-                                potential_moves.append(decision+dice.value[1] +dice.value[0]) 
-                        elif len(z) > 1 and x[0].color != z[0].color:
-                            if len(y) <= 1:
-                                potential_moves.append(decision+dice.value[1] +dice.value[0])  
-                        else:  potential_moves.append(decision+dice.value[1] +dice.value[0])
-                                                            
-       if self.player.color == "b":
-            k = self.board.points[decision-dice.value[0] - dice.value[1]]
-            t = self.board.points[decision-dice.value[0]]
-            s = self.board.points[decision-dice.value[1]]
-            if len(x) > 0 and t in self.board.points and decision-dice.value[0] > 0:
-                    if len(t) == 0:    
-                            potential_moves.append(decision-dice.value[0])      
-                    elif len(t) > 0 and x[0].color == t[0].color:
-                        potential_moves.append(decision-dice.value[0])
-                    elif len(t) > 0 and x[0].color != t[0].color:
-                        if len(t) ==1:
-                            potential_moves.append(decision-dice.value[0])
-                
-            if len(x) > 0 and s in self.board.points and decision-dice.value[1] > 0:
-                    if len(s) == 0:    
-                        potential_moves.append(decision-dice.value[1])      
-                    elif len(s) > 0 and x[0].color == s[0].color:
-                        potential_moves.append(decision-dice.value[1])
-                    elif len(s) > 0 and x[0].color != s[0].color:
-                        if len(s) ==1:
-                            potential_moves.append(decision-dice.value[1])
+   def select_move(self, potential_moves,decision):
+        potential_moves = potential_moves[0]
+        print("Possible moves: >", potential_moves)
+        move = int(input("Select where you want to move: "))
 
-            if len(x) > 0 and k in self.board.points:
-                   if len(k) <= 1 or x[0].color == k[0].color:
-                        if len(t) > 1 and x[0].color != t[0].color:
-                            if len(s) <= 1:
-                                potential_moves.append(decision-dice.value[1]-dice.value[0]) 
-                        elif len(s) > 1 and x[0].color != s[0].color:
-                            if len(t) <= 1:
-                                potential_moves.append(decision-dice.value[1]-dice.value[0])  
-                        else:  potential_moves.append(decision-dice.value[1]-dice.value[0])                            
-        
-       return potential_moves, f"dice: {(dice.value[0],dice.value[1])}"
+        if move in potential_moves["dice1"] or move in potential_moves["dice2"]:
+            old_pos = self.board.points[decision]
+            piece = old_pos[0]
+
+
+            self.capture_piece(decision,move)           
+            old_pos.remove(piece)
+            new_pos =self.board.points[move]
+            new_pos.append(piece)
+            print(f"piece moved to {move}")
+
+            # if self.dice.value["dice1"] == self.dice.value["dice2"]:
+            #     print("you have two extra moves with this pair")
+
+              
+            if move in potential_moves["dice1"]:
+             del self.dice.value["dice1"]
+            elif move in potential_moves["dice2"]:
+             del self.dice.value["dice2"] 
+
+            return move
+
+        print("Invalid move")
+        return None
+
+   def capture_piece(self, decision, move):
+       capturer_pos = self.board.points[decision]
+       captured_pos = self.board.points[move]
+       prison = self.board.prison
+       if len(capturer_pos) > 0:
+        capturer = capturer_pos[0]
+        if len(captured_pos) > 0:       
+            captured = captured_pos[0]
+            if capturer.color != captured.color:
+                captured.iscaptured = True
+                captured_pos.remove(captured)
+            else:
+                pass
+            return captured.iscaptured
+
+   def update_potential_positions(self, decision, move, all_positions):
+        pass
 
    def start_game(self):
-       w = self.piece = Piece(color="w")
-       b = self.piece = Piece(color="b")
-       board = self.board.points
-       board[0].extend([w]*2)
-       board[5].extend([b]*5)
-       board[7].extend([b]*3)
-       board[11].extend([w]*5)
-       board[12].extend([b]*5)
-       board[16].extend([w]*3)
-       board[18].extend([w]*5)
-       board[23].extend([b]*2)
+    self.board.points[0].extend(Piece("w") for _ in range(2))
+    self.board.points[5].extend(Piece("b") for _ in range(1))
+    self.board.points[7].extend(Piece("b") for _ in range(3))
+    self.board.points[11].extend(Piece("w") for _ in range(5))
+    self.board.points[12].extend(Piece("b") for _ in range(5))
+    self.board.points[16].extend(Piece("w") for _ in range(3))
+    self.board.points[18].extend(Piece("w") for _ in range(5))
+    self.board.points[23].extend(Piece("b") for _ in range(2))
 
 class Player:
     def __init__(self,name,color):
@@ -124,6 +172,8 @@ class Player:
         self.name = input(f"name >")      
         self.color = input(f"color >")    
         self.player_info["name": self.name, "color": self.color, "score": self.score, "win": self.win]
+        
+
                
 class Piece:
    def __init__(self,color):
@@ -136,14 +186,24 @@ class Piece:
        return f"{self.color}"
        
 class Dice:
-   def __init__(self):
-      self.value = (random.randint(1,6),random.randint(1,6))
-      
+    def __init__(self):
+        self.value = {}
+        self.roll_dices()
+
+    def roll(self):
+        return random.randint(1, 6)
+
+    def roll_dices(self):
+        self.value = {
+            "dice1": self.roll(),
+            "dice2": self.roll()
+        }
+       
 class Board:
    def __init__(self):
        self.size = 24
        self.points = [[] for _ in range(self.size)]
-     
+       self.prison = []
    def place_piece(self, piece, position):
        self.points[position].append(piece)
        piece.position = position
@@ -155,34 +215,47 @@ class Board:
    def color_of_cell(self,point):     
              return set(self.points[point])
    def display(self):
-      display_board = []
-      
+      display_board = []       
       for point in self.points:
             counts = {}
             for item in point:
-             if item in counts:
-                    counts[item] += 1
+             if item.color in counts:
+                    counts[item.color] += 1
              else:
-                    counts[item] = 1
+                    counts[item.color] = 1
             display_board.append(counts)
       return display_board             
 board = Board()
-dice = Dice()
 game = Game()
-player = Player("kerem","b")
+player = Player("kerem","w")
 game.player = player
 game.start_game()
-player1 = game.player.create_player()
-print(game.board.points)
-print(game.board.display())
-print(game.potential_positions(23))
-print(game.board.color_of_cell(5))
-print(game.board.count_piece(5))
+#player1 = game.player.create_player()
 print(game.player.color)
 
 
-  
-  
 
+while True:
+
+    player.create_player
+
+    # if game.dice.value["dice1"] == game.dice.value["dice2"]:
+    #  moves_left = 4
+    # else:
+    #  moves_left = 2  
+
+    # while moves_left > 0:
+     
+    #     print(game.board.display())
+    #     game.display_dices()
+    #     decision = game.selected_position()
+    #     positions = game.potential_positions(decision)
+    #     move = game.select_move(positions, decision)
+
+    #     moves_left -= 1
+
+    # game.dice.roll_dices()
+
+    
 
 
