@@ -17,7 +17,10 @@
 # capturer_pos boş kalınca index out of range hatası veriyor ☑️
 
 #81926
-#çift gelirse zarları silmemelisin?
+#çift gelirse zarları silmemelisin? ☑️ 
+
+#9826
+#vurulan taşları hapse at
 
 import random
 
