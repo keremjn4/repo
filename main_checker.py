@@ -29,10 +29,8 @@ class Game:
        self.piece = Piece(color=None)
        self.nextturn = None
        self.running = False
-
-   def set_turn(self):
-       pass
-       
+       self.memory = [self.dice.value["dice1"],self.dice.value["dice2"]]
+       self.moves_left = 4 if self.memory[0] == self.memory[1] else 2
 
    def choose_action(self):
        action = print("> stats\n > new game"),
@@ -125,14 +123,21 @@ class Game:
 
             # if self.dice.value["dice1"] == self.dice.value["dice2"]:
             #     print("you have two extra moves with this pair")
-
-            if self.dice.value["dice1"] !=  self.dice.value["dice2"]:
+            
+            dice_values = self.memory
+            if dice_values[0] != dice_values[1]:
                 if move in potential_moves["dice1"]:
-                 del self.dice.value["dice1"]
+                    del self.dice.value["dice1"]
                 elif move in potential_moves["dice2"]:
-                 del self.dice.value["dice2"] 
-            elif self.dice.value["dice1"] ==  self.dice.value["dice2"]:
-                 print("you have two extra moves with this pair")
+                    del self.dice.value["dice2"] 
+            elif dice_values[0] == dice_values[1]:
+                 if game.moves_left < 3:
+                     if move in potential_moves["dice1"]:
+                         del self.dice.value["dice1"]
+                     elif move in potential_moves["dice2"]:
+                         del self.dice.value["dice2"]                         
+                     
+            
 
             return move
 
@@ -243,7 +248,7 @@ game = Game()
 player = Player("kerem","w")
 game.player = player
 game.start_game()
-with open("players.txt","r") as file:
+with open("player.txt","r") as file:
     content =file.read()
     if content == "":
         print("no player record found. creating new player...")
@@ -252,19 +257,26 @@ with open("players.txt","r") as file:
         print(f"welcome {player.name}")
 #player1 = game.player.create_player()
 while True:
-
-    moves_left = 2  
-
-    while moves_left > 0:
+    
+    while game.moves_left > 0:
         print(game.board.display())
         game.display_dices()
         decision = game.selected_position()
         positions = game.potential_positions(decision)
         move = game.select_move(positions, decision)
+    
 
-        moves_left -= 1
+        game.moves_left -= 1
+        print(game.moves_left)
+    if game.moves_left == 0:
+        game.memory.clear()  
+        game.dice.roll_dices()
+        game.memory.append(game.dice.value["dice1"])
+        game.memory.append(game.dice.value["dice2"])
+        game.moves_left = 4 if game.memory[0] == game.memory[1] else 2
 
-    game.dice.roll_dices()
+
+    
 
     
 
