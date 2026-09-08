@@ -27,8 +27,17 @@ class Game:
        self.dice = Dice()
        self.player = Player(name=None,color=None)
        self.piece = Piece(color=None)
+       self.nextturn = None
        self.running = False
 
+   def set_turn(self):
+       pass
+       
+
+   def choose_action(self):
+       action = print("> stats\n > new game"),
+       return action
+ 
    def display_dices(self):
        return print(f'Dices: {game.dice.value.get("dice1")}, {game.dice.value.get("dice2")}')
 
@@ -117,11 +126,13 @@ class Game:
             # if self.dice.value["dice1"] == self.dice.value["dice2"]:
             #     print("you have two extra moves with this pair")
 
-              
-            if move in potential_moves["dice1"]:
-             del self.dice.value["dice1"]
-            elif move in potential_moves["dice2"]:
-             del self.dice.value["dice2"] 
+            if self.dice.value["dice1"] !=  self.dice.value["dice2"]:
+                if move in potential_moves["dice1"]:
+                 del self.dice.value["dice1"]
+                elif move in potential_moves["dice2"]:
+                 del self.dice.value["dice2"] 
+            elif self.dice.value["dice1"] ==  self.dice.value["dice2"]:
+                 print("you have two extra moves with this pair")
 
             return move
 
@@ -169,12 +180,14 @@ class Player:
          self.player_info = {}
 
     def create_player(self):
-        self.name = input(f"name >")      
-        self.color = input(f"color >")    
-        self.player_info["name": self.name, "color": self.color, "score": self.score, "win": self.win]
-        
-
-               
+        self.name = input(f"name >")          
+        with open("players.txt", "w") as file:
+            file.write(
+               "name:" + " " + player.name+ ",\n" +
+               "L:" + " " + str(player.lose) + ",\n" +
+               "W:" + " " + str(player.win)
+            )    
+        print(f"new player {self.name} has been created")        
 class Piece:
    def __init__(self,color):
        self.color = color 
@@ -230,31 +243,28 @@ game = Game()
 player = Player("kerem","w")
 game.player = player
 game.start_game()
+with open("players.txt","r") as file:
+    content =file.read()
+    if content == "":
+        print("no player record found. creating new player...")
+        new_player = player.create_player()
+    else:
+        print(f"welcome {player.name}")
 #player1 = game.player.create_player()
-print(game.player.color)
-
-
-
 while True:
 
-    player.create_player
+    moves_left = 2  
 
-    # if game.dice.value["dice1"] == game.dice.value["dice2"]:
-    #  moves_left = 4
-    # else:
-    #  moves_left = 2  
+    while moves_left > 0:
+        print(game.board.display())
+        game.display_dices()
+        decision = game.selected_position()
+        positions = game.potential_positions(decision)
+        move = game.select_move(positions, decision)
 
-    # while moves_left > 0:
-     
-    #     print(game.board.display())
-    #     game.display_dices()
-    #     decision = game.selected_position()
-    #     positions = game.potential_positions(decision)
-    #     move = game.select_move(positions, decision)
+        moves_left -= 1
 
-    #     moves_left -= 1
-
-    # game.dice.roll_dices()
+    game.dice.roll_dices()
 
     
 
