@@ -28,12 +28,22 @@ class Game:
    def __init__(self):
        self.board = Board()
        self.dice = Dice()
-       self.player = Player(name=None,color=None)
+       self.player1 = Player("Player 1", "w")
+       self.player2 = Player("Player 2", "b")
+       self.player = self.player1
        self.piece = Piece(color=None)
        self.nextturn = None
        self.running = False
        self.memory = [self.dice.value["dice1"],self.dice.value["dice2"]]
        self.moves_left = 4 if self.memory[0] == self.memory[1] else 2
+
+   def switch_player(self):
+        if self.player == self.player1:
+            self.player = self.player2
+        else:
+            self.player = self.player1
+
+        print(f"\n{self.player.name}'s turn ({self.player.color})")      
 
    def choose_action(self):
        action = print("> stats\n > new game"),
@@ -107,6 +117,36 @@ class Game:
                                                                                                                        
        return union
 
+   def moveisvalid(self, move,potential_moves):
+        ismovevalid = False
+        if move in potential_moves["dice1"] or move in potential_moves["dice2"]:
+            ismovevalid = True
+        return ismovevalid
+
+   
+   def makemove(self, move):
+        old_pos = self.board.points[decision]
+        piece = old_pos[0]
+        self.capture_piece(decision,move)           
+        old_pos.remove(piece)
+        new_pos =self.board.points[move]
+        new_pos.append(piece)
+        print(f"piece moved to {move}")       
+
+   def updatedicevalues(self, move, potential_moves):  
+       potential_moves = potential_moves[0]
+       dice_values = self.memory
+       if dice_values[0] != dice_values[1]:
+            if move in potential_moves["dice1"]:
+                del self.dice.value["dice1"]
+            elif move in potential_moves["dice2"]:
+                del self.dice.value["dice2"] 
+       elif dice_values[0] == dice_values[1]:
+                if game.moves_left < 3:
+                    if move in potential_moves["dice1"]:
+                        del self.dice.value["dice1"]
+                    elif move in potential_moves["dice2"]:
+                        del self.dice.value["dice2"]                  
 
    def select_move(self, potential_moves,decision):
         potential_moves = potential_moves[0]
@@ -117,28 +157,10 @@ class Game:
             old_pos = self.board.points[decision]
             piece = old_pos[0]
 
-
-            self.capture_piece(decision,move)           
-            old_pos.remove(piece)
-            new_pos =self.board.points[move]
-            new_pos.append(piece)
-            print(f"piece moved to {move}")
-
             # if self.dice.value["dice1"] == self.dice.value["dice2"]:
             #     print("you have two extra moves with this pair")
             
-            dice_values = self.memory
-            if dice_values[0] != dice_values[1]:
-                if move in potential_moves["dice1"]:
-                    del self.dice.value["dice1"]
-                elif move in potential_moves["dice2"]:
-                    del self.dice.value["dice2"] 
-            elif dice_values[0] == dice_values[1]:
-                 if game.moves_left < 3:
-                     if move in potential_moves["dice1"]:
-                         del self.dice.value["dice1"]
-                     elif move in potential_moves["dice2"]:
-                         del self.dice.value["dice2"]                         
+                     
                      
             
 
@@ -162,9 +184,6 @@ class Game:
                 pass
             return captured.iscaptured
 
-   def update_potential_positions(self, decision, move, all_positions):
-        pass
-
    def start_game(self):
     self.board.points[0].extend(Piece("w") for _ in range(2))
     self.board.points[5].extend(Piece("b") for _ in range(1))
@@ -187,15 +206,15 @@ class Player:
          self.lose_total = 0
          self.player_info = {}
 
-    def create_player(self):
-        self.name = input(f"name >")          
-        with open("players.txt", "w") as file:
-            file.write(
-               "name:" + " " + player.name+ ",\n" +
-               "L:" + " " + str(player.lose) + ",\n" +
-               "W:" + " " + str(player.win)
-            )    
-        print(f"new player {self.name} has been created")        
+    # def create_player(self):
+    #     self.name = input(f"name >")          
+    #     with open("players.txt", "w") as file:
+    #         file.write(
+    #            "name:" + " " + player.name+ ",\n" +
+    #            "L:" + " " + str(player.lose) + ",\n" +
+    #            "W:" + " " + str(player.win)
+    #         )    
+    #     print(f"new player {self.name} has been created")        
 class Piece:
    def __init__(self,color):
        self.color = color 
@@ -248,18 +267,17 @@ class Board:
       return display_board             
 board = Board()
 game = Game()
-player = Player("kerem","w")
-game.player = player
 game.start_game()
-with open("player.txt","r") as file:
-    content =file.read()
-    if content == "":
-        print("no player record found. creating new player...")
-        new_player = player.create_player()
-    else:
-        print(f"welcome {player.name}")
+# with open("player.txt","r") as file:
+#     content =file.read()
+#     if content == "":
+#         print("no player record found. creating new player...")
+#         new_player = player.create_player()
+#     else:
+#         print(f"welcome {player.name}")
 #player1 = game.player.create_player()
 while True:
+    print(f"\nTurn: {game.player.name} ({game.player.color})")
     
     while game.moves_left > 0:
         print(game.board.display())
@@ -267,11 +285,16 @@ while True:
         decision = game.selected_position()
         positions = game.potential_positions(decision)
         move = game.select_move(positions, decision)
-    
 
-        game.moves_left -= 1
+        if game.moveisvalid(move,positions[0]):
+          game.makemove(move)
+          game.updatedicevalues(move, positions)
+          game.moves_left -= 1
+
         print(game.moves_left)
+
     if game.moves_left == 0:
+        game.switch_player()
         game.memory.clear()  
         game.dice.roll_dices()
         game.memory.append(game.dice.value["dice1"])
