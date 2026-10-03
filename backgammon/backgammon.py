@@ -20,7 +20,7 @@
 #çift gelirse zarları silmemelisin? ☑️ 
 
 #9826
-#vurulan taşları hapse at
+#vurulan taşları hapse at ☑️
 
 import random
 
@@ -158,11 +158,7 @@ class Game:
             piece = old_pos[0]
 
             # if self.dice.value["dice1"] == self.dice.value["dice2"]:
-            #     print("you have two extra moves with this pair")
-            
-                     
-                     
-            
+            #     print("you have two extra moves with this pair")          
 
             return move
 
